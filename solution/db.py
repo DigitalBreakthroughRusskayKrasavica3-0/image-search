@@ -8,7 +8,10 @@ import ai_model
 class DB:
     def __init__(self, model): 
         self.model = model
-        self.client = clickhouse_connect.get_client()
+        self.client = clickhouse_connect.get_client(
+            host=os.getenv('CLICKHOUSE_HOST') or None, 
+            port=os.getenv('CLICKHOUSE_PORT') or None,
+        )
         self.client.command('''
         CREATE TABLE IF NOT EXISTS museum_items (
             object_id Integer, 
