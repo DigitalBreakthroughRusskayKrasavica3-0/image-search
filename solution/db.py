@@ -1,9 +1,12 @@
+import sys
 import os
 import numpy as np
 import os
 import clickhouse_connect 
 from PIL import Image
 import ai_model
+
+# factor out dataset.py from ai_model.py
 
 class DB:
     def __init__(self, model): 
@@ -16,26 +19,26 @@ class DB:
         )
         print('connected to clickhouse')
         self.client.command('''
-        CREATE TABLE IF NOT EXISTS museum_items (
+        CREATE TABLE IF NOT EXISTS museum_imgs (
             object_id Integer, 
             img_name String, 
             name Nullable(String), 
             description Nullable(String), 
             group String,
-            image_embedding Array(Float32)
-        ) ENGINE MergeTree ORDER BY object_id
-        ''')
+            image_embedding Array(Float32),
+        ) ENGINE MergeTree ORDER BY object_id 
+        ''') # TODO: add unique constraint
     
-    def insert_museum_items(self, df):
+    def insert_museum_imgs(self, df):
         data = [] 
         for index, row in df.iterrows(): 
             image = Image.open(row.path)
             emb = self.model.encode_images(image).tolist()
             row = row.replace({np.nan: None}).to_dict()
             data.append([row['object_id'], row['img_name'], row['name'], row['description'], row['group'], emb])
-        self.client.insert('museum_items', data, column_names='*')
+        self.client.insert('museum_imgs', data, column_names='*')
 
-        print('inserted', self.client.command('select count(*) from museum_items'), ' museum items')
+        print('inserted', self.client.command('select count(*) from museum_imgs'), 'museum images')
 
     def search_similar(self, img: str | Image.Image):
         if isinstance(img, str): 
@@ -44,7 +47,7 @@ class DB:
         parameters = {'query_embedding': emb}
         res = self.client.query('''
             SELECT object_id, img_name, L2Distance(image_embedding, {query_embedding:Array(Float32)}) as dist 
-            FROM museum_items 
+            FROM museum_imgs 
             ORDER BY dist ASC
             LIMIT 10
         ''', parameters=parameters)
@@ -52,5 +55,8 @@ class DB:
 
 
 if __name__ == '__main__': 
+    df = ai_model.df
+    if len(sys.argv) > 1: 
+        df = df[:int(sys.argv[1])]
     db = DB(ai_model.large_clip)
-    db.insert_museum_items(ai_model.df[:ai_model.IMAGE_SEARCH_SUBSET_N])
+    db.insert_museum_imgs(df)

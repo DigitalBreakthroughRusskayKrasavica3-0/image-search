@@ -69,7 +69,7 @@ with gr.Blocks(css=css) as demo:
     # header
     with gr.Row():
         logo = gr.Image(
-            'logo.png',
+            'static/logo.png',
             container=False,
             show_download_button=False,
             elem_id='logo'

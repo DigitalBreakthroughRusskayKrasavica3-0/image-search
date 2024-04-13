@@ -39,6 +39,5 @@ def preprocess_df(full_df):
 DATASET_PATH = os.getenv("DATASET_PATH") or '../mincult-train/'
 df = pandas.read_csv(os.path.join(DATASET_PATH, 'train.csv'), sep=';')
 df = preprocess_df(df)
-IMAGE_SEARCH_SUBSET_N = 100
 
 large_clip = LargeClipCat() 
