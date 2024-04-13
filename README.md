@@ -46,6 +46,7 @@
 ```
 
 ## Локальное разворачивание
+
 1. Зайти в папку solution 
 2. Выполнить `pip install -r requirements.txt`
 3. Запустить ClickHouse с помощью `docker compose up -d --build` 
