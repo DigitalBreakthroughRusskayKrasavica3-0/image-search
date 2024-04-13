@@ -1,3 +1,4 @@
+import os
 from multilingual_clip import pt_multilingual_clip
 import transformers
 import open_clip
@@ -29,13 +30,15 @@ class LargeClipCat(CategoryModel):
         return self.model.forward(texts, self.tokenizer)
 
 def preprocess_df(full_df): 
-    full_df['path'] = '../mincult-train/train/'+ full_df['object_id'].astype(str) + '/' + full_df['img_name']
-    full_df['embedding_path'] = full_df['path']+'.embedding'
+    full_df['path'] = os.path.join(DATASET_PATH, 'train') + '/' + full_df['object_id'].astype(str) + '/' + full_df['img_name']
+    # full_df['embedding_path'] = full_df['path']+'.embedding'
     full_df['group'] = full_df['group'].replace('ДПИ',  'Декоративно-прикладное искусство')
     return full_df
 
 
-df = pandas.read_csv('../mincult-train/train.csv', sep=';')
+DATASET_PATH = '../mincult-train/'
+df = pandas.read_csv(os.path.join(DATASET_PATH, 'train.csv'), sep=';')
 df = preprocess_df(df)
+IMAGE_SEARCH_SUBSET_N = 100
 
 large_clip = LargeClipCat() 

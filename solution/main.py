@@ -1,18 +1,24 @@
 from PIL.Image import Image
 import gradio as gr
 
-import get_categories_en
-import find_best_en
 import get_img_description
+import os
+import db 
+import ai_model
+import get_categories
 
+DB = db.DB(ai_model.large_clip) 
 
 def get_images(image: Image) -> tuple[str, list[str]]:
-    images = find_best_en.find_best(image)
+    images = [os.path.join(ai_model.DATASET_PATH, 'train', img_path) for img_path in DB.search_similar(image)]
+    print(images)
     return images[0], images[1:]
 
-def get_categories(image: Image) -> tuple[str, list[str]]:
-    cats = [f'{cat} ({round(conf, 2)}%)' for cat, conf in get_categories_en.get_categories(image)]
-    return cats[0] , *cats[1:]
+def get_categories_texts(image: Image) -> tuple[str, list[str]]:
+    cats = get_categories.category_getter.get_categories(image)
+    print(cats)
+    cats = [f'{cat} ({round(100*conf, 2)}%)' for cat, conf in cats]
+    return cats[0], *cats[1:]
 
 def get_description(image: Image) -> str: 
     desc =  get_img_description.get_img_description_ru(image, get_img_description.get_img_desc_large_git)
@@ -39,7 +45,7 @@ with gr.Blocks(css=css) as demo:
         outputs=[best_image, images]
     )
     btn.click(
-        fn=get_categories,
+        fn=get_categories_texts,
         inputs=input_image,
         outputs=[best_category, *categories]
     )
