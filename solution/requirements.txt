@@ -1,0 +1,9 @@
+clickhouse-connect==0.7.7
+gradio==4.26.0
+multilingual-clip==1.0.10
+numpy==1.26.4
+open-clip-torch==2.24.0
+pandas==2.2.2
+pillow==10.3.0
+torch==2.2.2
+translate==3.6.1
