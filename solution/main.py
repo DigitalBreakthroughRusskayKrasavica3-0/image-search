@@ -23,7 +23,6 @@ css = '''
 .big textarea {font-size: 24px}
 '''
 
-
 with gr.Blocks(css=css) as demo:
     with gr.Row():
         input_image = gr.Image(height='500px', label='Загрузите изображение', type='pil')

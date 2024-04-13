@@ -46,4 +46,4 @@ def get_categories(img: str | Image.Image):
 
     res = [(translations[categories[index]], 100 * value.item()) for value, index in zip(values, indices)]
     print(res) 
-    return [pred[0] for pred in res]
+    return res
