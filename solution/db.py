@@ -12,6 +12,7 @@ class DB:
             host=os.getenv('CLICKHOUSE_HOST') or None, 
             port=os.getenv('CLICKHOUSE_PORT') or None,
         )
+        print('connected to clickhouse')
         self.client.command('''
         CREATE TABLE IF NOT EXISTS museum_items (
             object_id Integer, 
