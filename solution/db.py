@@ -48,7 +48,7 @@ class DB:
             ORDER BY dist ASC
             LIMIT 10
         ''', parameters=parameters)
-        return [os.path.join(str(row[0]), row[1]) for row in res.result_rows]
+        return [(str(row[0]), os.path.join(str(row[0]), row[1])) for row in res.result_rows]
 
 
 if __name__ == '__main__': 
