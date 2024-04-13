@@ -3,6 +3,7 @@ import torch
 import pandas 
 from PIL import Image
 import ai_model
+import dataset
 
 class CategoryGetter: 
     def __init__(self, full_df, pref, other_thresh, model: ai_model.CategoryModel): 
@@ -35,7 +36,7 @@ class CategoryGetter:
         #     res = res[1:]
         return res
 
-category_getter = CategoryGetter(ai_model.df, "экспонат музея категории ", 0.3, ai_model.large_clip)
+category_getter = CategoryGetter(dataset.df, "экспонат музея категории ", 0.3, ai_model.large_clip)
 
 if __name__ == '__main__': 
     category_getter.get_categories(sys.argv[1])

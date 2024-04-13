@@ -7,15 +7,16 @@ import gradio as gr
 import get_img_description
 import os
 import db 
+
 import ai_model
+import dataset
 from categories_getter import category_getter
 
 DB = db.DB(model=ai_model.large_clip)
 
-
 def get_images(image: Image.Image) -> tuple[str, str, list[str]]:
     fetched_images = DB.search_similar(image)
-    images = [os.path.join(ai_model.DATASET_PATH, 'train', img_path) for _, img_path in fetched_images]
+    images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, img_path in fetched_images]
     print(images)
     return fetched_images[0][0], images[0], images[1:]
 
@@ -34,6 +35,7 @@ def get_description(image: Image) -> str:
 
 def get_json_dump(object_id: str, category: str, description: str) -> str:
     temp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False)
+    category = category[:category.rfind('(')].strip()
     json.dump(
         {
             'similar_object_id': object_id,  
