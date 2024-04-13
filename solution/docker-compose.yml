@@ -1,0 +1,7 @@
+clickhouse:
+  image: clickhouse/clickhouse-server 
+  volumes:
+    ./clickhouse-db:/var/lib/clickhouse 
+  ports: 
+    8123:8123
+    9001:9000

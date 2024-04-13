@@ -11,6 +11,8 @@ class DB:
         self.client = clickhouse_connect.get_client(
             host=os.getenv('CLICKHOUSE_HOST') or None, 
             port=os.getenv('CLICKHOUSE_PORT') or None,
+            username=os.getenv('CLICKHOUSE_USERNAME') or None, 
+            password=os.getenv('CLICKHOUSE_PASSWORD') or None,
         )
         print('connected to clickhouse')
         self.client.command('''
@@ -25,13 +27,13 @@ class DB:
         ''')
     
     def insert_museum_items(self, df):
+        data = [] 
         for index, row in df.iterrows(): 
             image = Image.open(row.path)
             emb = self.model.encode_images(image).tolist()
             row = row.replace({np.nan: None}).to_dict()
-            data = [[row['object_id'], row['img_name'], row['name'], row['description'], row['group'], emb]]
-            # cols = ['object_id', 'img_name', 'name', 'description', 'group', 'image_embedding']
-            self.client.insert('museum_items', data, column_names='*')
+            data.append([row['object_id'], row['img_name'], row['name'], row['description'], row['group'], emb])
+        self.client.insert('museum_items', data, column_names='*')
 
         print('inserted', self.client.command('select count(*) from museum_items'), ' museum items')
 
