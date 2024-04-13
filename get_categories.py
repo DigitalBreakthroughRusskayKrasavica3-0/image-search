@@ -32,8 +32,6 @@ with open(data_path, encoding='utf-8', newline='') as csvfile:
             categories.append(row['group'])
             # translations[category] = row['group']
 
-# ЛОЖКУ ОПРЕДЕЛЯЕТ КАК ОРУЖИЕ
-
 def get_categories(img: str | Image.Image):
     if isinstance(img, str): 
         img = Image.open(img)
