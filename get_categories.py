@@ -53,7 +53,8 @@ def get_categories(img: str | Image.Image):
     dists = {} 
     for i, t in enumerate(texts): 
         dists[t] = distance.cosine(text_embeddings[i], img_embedding)
-    print(sorted(list(dists.items()),key=lambda a: a[1])[:5])
+    best = sorted(list(dists.items()),key=lambda a: a[1])[:5]
+    return best
 
     # for text, scores in zip(texts, cos_sim):
     #     max_img_idx = torch.argmax(scores)

@@ -7,7 +7,7 @@ import torch
 from scipy.spatial import distance
 
 df = pandas.read_csv('./mincult-train/train.csv', sep=';')
-df = df[:30]
+df = df[:1000]
 df['path'] = './mincult-train/train/'+ df['object_id'].astype(str) + '/' + df['img_name']
 df['embedding_path'] = df['path']+'.embedding'
 
