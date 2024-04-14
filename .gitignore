@@ -4,3 +4,4 @@ __pycache__
 mincult-train
 venv
 solution/clickhouse-db
+.DS_Store
