@@ -1,45 +1,24 @@
 import json
-
 from PIL import Image
 import tempfile
 import gradio as gr
 
-import get_img_description
-import os
-import db 
-
-import ai_model
-import dataset
-# from categories_getter import category_getter
-
-DB = db.DB(model=ai_model.large_clip)
 
 def img_get_images_and_categories(image: Image.Image):
-    fetched_images = DB.search_similar(image)
-    return _convert_to_ui(fetched_images)
+    return '123', 'test.jpg', ['test.jpg' for _ in range(9)], 'Best', 'Wow1', 'Wow2', 'Wow3', 'Wow4'
 
-IMAGES_DUPLICATES_THRESHOLD = 7 # 0.1
-def _convert_to_ui(fetched_images): 
-    print(fetched_images[0][3])
-    if fetched_images[0][3] < IMAGES_DUPLICATES_THRESHOLD: 
-        gr.Warning('Загруженное изображение очень похоже на изображение экспоната, уже введённого в базу данных. Возможно, это дубликат!')
-    images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, _, img_path, _ in fetched_images]
-    return fetched_images[0][0], images[0], images[1:], fetched_images[0][1], 'adsf', 'asdf', 'asdf', 'asdf'
 
 def desc_get_images_and_categories(description: str):
-    print(description)
-    fetched_images = DB.search_similar_by_text(description)
-    return _convert_to_ui(fetched_images)
+    return '123', 'test.jpg', ['test.jpg' for _ in range(9)], 'Best', 'Wow1', 'Wow2', 'Wow3', 'Wow4'
 
 
 def img_get_description(image: Image.Image) -> str:
-    desc = get_img_description.get_img_description_ru(image, get_img_description.get_img_desc_large_git)
-    print(desc)
-    return desc[0].upper() + desc[1:]
+    return 'Testing description'
 
 
 def desc_get_description(description: str) -> str:
-    return '' # todo: think about this
+    return 'Testing description'
+
 
 def get_json_dump(image: str, category: str, description: str) -> str:
     temp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False)
@@ -58,6 +37,9 @@ def set_outputs_visible() -> list:
 
 def set_outputs_invisible() -> list:
     return [gr.update(visible=False) for _ in range(8)] + [None]
+
+def clear_value() -> list: 
+    return [gr.update(value='')]  
 
 
 css = '''
@@ -196,10 +178,10 @@ with gr.Blocks(css=css) as demo:
     )
     input_image.clear(
         fn=set_outputs_invisible,
-        outputs=[best_category, description, json_btn, *categories, images]
+        outputs=[best_category, description, json_btn, *categories, images, best_image]
     )
     input_image.clear(
-        fn=lambda: None,
+        fn=clear_value,
         outputs=[best_image]
     )
     send_description_btn.click(
@@ -217,4 +199,3 @@ with gr.Blocks(css=css) as demo:
 
 if __name__ == '__main__':
     demo.launch(share=True, server_port=8042)
-
