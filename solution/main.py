@@ -18,7 +18,11 @@ def img_get_images_and_categories(image: Image.Image):
     fetched_images = DB.search_similar(image)
     return _convert_to_ui(fetched_images)
 
+IMAGES_DUPLICATES_THRESHOLD = 7 # 0.1
 def _convert_to_ui(fetched_images): 
+    print(fetched_images[0][3])
+    if fetched_images[0][3] < IMAGES_DUPLICATES_THRESHOLD: 
+        gr.Warning('Загруженное изображение очень похоже на изображение экспоната, уже введённого в базу данных. Возможно, это дубликат!')
     images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, _, img_path, _ in fetched_images]
     return fetched_images[0][0], images[0], images[1:], fetched_images[0][1], 'adsf', 'asdf', 'asdf', 'asdf'
 
@@ -30,6 +34,7 @@ def desc_get_images_and_categories(description: str):
 
 def img_get_description(image: Image.Image) -> str:
     desc = get_img_description.get_img_description_ru(image, get_img_description.get_img_desc_large_git)
+    print(desc)
     return desc[0].upper() + desc[1:]
 
 
@@ -71,7 +76,7 @@ with gr.Blocks(css=css) as demo:
     # header
     with gr.Row():
         logo = gr.Image(
-            'logo.png',
+            'static/logo.png',
             container=False,
             show_download_button=False,
             elem_id='logo'
