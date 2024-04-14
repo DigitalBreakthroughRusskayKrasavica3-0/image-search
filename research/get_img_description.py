@@ -84,7 +84,7 @@ def get_img_desc_blip_mocha(img: str | Image.Image):
 
 def get_img_description_ru(img: str | Image.Image, get_img_desc_func=get_img_desc_blip_mocha) -> str:
     en_desc = get_img_desc_func(img)
-    print(en_desc)
+    print('hello', en_desc)
     translator = Translator(to_lang="ru")
 
     ru_desc = translator.translate(en_desc)
