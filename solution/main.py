@@ -10,57 +10,57 @@ import db
 
 import ai_model
 import dataset
-from categories_getter import category_getter
+# from categories_getter import category_getter
 
 DB = db.DB(model=ai_model.large_clip)
 
-def get_images(image: Image.Image) -> tuple[str, str, list[str]]:
+def img_get_images_and_categories(image: Image.Image):
     fetched_images = DB.search_similar(image)
-    images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, img_path in fetched_images]
-    print(images)
-    return fetched_images[0][0], images[0], images[1:]
+    return _convert_to_ui(fetched_images)
+
+def _convert_to_ui(fetched_images): 
+    images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, _, img_path, _ in fetched_images]
+    return fetched_images[0][0], images[0], images[1:], fetched_images[0][1], 'adsf', 'asdf', 'asdf', 'asdf'
+
+def desc_get_images_and_categories(description: str):
+    print(description)
+    fetched_images = DB.search_similar_by_text(description)
+    return _convert_to_ui(fetched_images)
 
 
-def get_categories(image: Image.Image) -> list[str]:
-    cats = category_getter.get_categories(image)
-    print(cats)
-    cats = [f'{cat} ({round(100*conf, 2)}%)' for cat, conf in cats]
-    return cats
-
-
-def get_description(image: Image) -> str:
+def img_get_description(image: Image.Image) -> str:
     desc = get_img_description.get_img_description_ru(image, get_img_description.get_img_desc_large_git)
     return desc[0].upper() + desc[1:]
 
 
-def get_json_dump(object_id: str, category: str, description: str) -> str:
+def desc_get_description(description: str) -> str:
+    return '' # todo: think about this
+
+
+def get_json_dump(image: str, category: str, description: str) -> str:
     temp_file = tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False)
-    category = category[:category.rfind('(')].strip()
     json.dump(
-        {
-            'similar_object_id': object_id,  
-            'category': category, 
-            'description': description,
-        },
+        {'image_id': image, 'category': category, 'description': description},
         temp_file,
         separators=(', ', ': '),
-        ensure_ascii=False,
+        ensure_ascii=False
     )
     return temp_file.name
 
 
-def change_outputs_visible() -> list:
-    global is_visible
-    is_visible = not is_visible
-    print(is_visible)
-    return [gr.update(visible=is_visible) for _ in range(8)] + [None]
+def set_outputs_visible() -> list:
+    print('visible')
+    return [gr.update(visible=True) for _ in range(8)]
+
+
+def set_outputs_invisible() -> list:
+    print('invisible')
+    return [gr.update(visible=False) for _ in range(8)] + [None]
 
 
 css = '''
-.big textarea {font-size: 24px}
-.big {font-size: 24px}
+.big_font, .big_font textarea {font-size: 24px}
 #logo {width: auto !important; height; auto !important; max-width: 20px;}
-.header_image {overflow: scroll !important;}
 '''
 
 
@@ -71,44 +71,50 @@ with gr.Blocks(css=css) as demo:
     # header
     with gr.Row():
         logo = gr.Image(
-            'static/logo.png',
+            'logo.png',
             container=False,
             show_download_button=False,
             elem_id='logo'
         )
         with gr.Column():
-            title = gr.HTML('<h1>Хакатон "Цифровой Прорыв ЮФО"</h1>')
-            subtitle = gr.HTML('<h1>Команда "Русская Красавица 3.0"</h1>')
+            title = gr.HTML('<h1 style="text-align: center">Цифровой Прорыв (Южный Федеральный Округ)<h1>')
+            subtitle = gr.HTML('<h1 style="text-align: center">Команда "Русская Красавица 3.0"</h1>')
 
-    # download chapter
+    # input chapter
     with gr.Row():
-        input_image = gr.Image(
-            height='500px',
-            label='Загрузите изображение',
-            type='pil',
-            elem_classes='header_image'
-        )
+        with gr.Tab('Изображение') as img_tab:
+            input_image = gr.Image(
+                label='Загрузите изображение',
+                height='500px',
+                type='pil'
+            )
+        with gr.Tab('Описание') as desc_tab:
+            input_description = gr.Text(
+                label='Загрузите описание'
+            )
+            send_description_btn = gr.Button(
+                'Отправить описание',
+                variant='primary'
+            )
         best_image = gr.Image(
             interactive=False,
-            sources=[],
-            height='500px',
+            height='550px',
             label='Лучшее совпадение по изображению',
-            type='filepath',
-            elem_classes='header_image'
+            type='filepath'
         )
 
     # description chapter
     with gr.Row():
         description = gr.Text(
             info='Описание изображения',
-            elem_classes='big',
+            elem_classes='big_font',
             show_label=False,
             scale=5,
             visible=False
         )
         json_btn = gr.DownloadButton(
-            'Скачать в JSON',
-            elem_classes='big',
+            label='Скачать в JSON',
+            elem_classes='big_font',
             variant='primary',
             visible=False
         )
@@ -118,14 +124,14 @@ with gr.Blocks(css=css) as demo:
         best_category = gr.Text(
             interactive=False,
             info='Лучшее совпадение по категории (в скобках указаны проценты уверенности)',
-            elem_classes='big',
+            elem_classes='big_font',
             show_label=False,
             scale=3,
             visible=False
         )
         categories = [gr.Text(
             info='Похожая категория',
-            elem_classes='big',
+            elem_classes='big_font',
             show_label=False,
             visible=False
         ) for _ in range(4)]
@@ -141,29 +147,58 @@ with gr.Blocks(css=css) as demo:
 
     # input image events
     input_image.upload(
-        fn=get_images,
+        fn=img_get_images_and_categories,
         inputs=input_image,
-        outputs=[image_id, best_image, images]
+        outputs=[image_id, best_image, images, best_category, *categories]
     )
     input_image.upload(
-        fn=get_categories,
-        inputs=input_image,
-        outputs=[best_category, *categories]
-    )
-    input_image.upload(
-        fn=get_description,
+        fn=img_get_description,
         inputs=input_image,
         outputs=[description]
     )
 
+    # input description events
+    send_description_btn.click(
+        fn=desc_get_images_and_categories,
+        inputs=input_description,
+        outputs=[image_id, best_image, images, best_category, *categories]
+    )
+    send_description_btn.click(
+        fn=desc_get_description,
+        inputs=input_description,
+        outputs=[description]
+    )
+
+    # input tab change event
+    img_tab.select(
+        fn=lambda: None,
+        outputs=input_description
+    )
+    img_tab.select(
+        fn=set_outputs_invisible,
+        outputs=[best_category, description, json_btn, *categories, images, best_image]
+    )
+    desc_tab.select(
+        fn=lambda: None,
+        outputs=input_image
+    )
+    desc_tab.select(
+        fn=set_outputs_invisible,
+        outputs=[best_category, description, json_btn, *categories, images, best_image]
+    )
+
     # change output visible
     input_image.upload(
-        fn=change_outputs_visible,
+        fn=set_outputs_visible,
         outputs=[best_category, description, json_btn, *categories, images]
     )
     input_image.clear(
-        fn=change_outputs_visible,
+        fn=set_outputs_invisible,
         outputs=[best_category, description, json_btn, *categories, images, best_image]
+    )
+    send_description_btn.click(
+        fn=set_outputs_visible,
+        outputs=[best_category, description, json_btn, *categories, images]
     )
 
     # JSON button event (download JSON)

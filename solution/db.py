@@ -4,6 +4,7 @@ import numpy as np
 import os
 import clickhouse_connect 
 from PIL import Image
+import dataset
 import ai_model
 
 # factor out dataset.py from ai_model.py
@@ -44,18 +45,25 @@ class DB:
         if isinstance(img, str): 
             img = Image.open(img) 
         emb = self.model.encode_images(img).tolist()
+        return self._search_by_embedding(emb)
+
+    def search_similar_by_text(self, text: str):
+        emb = self.model.encode_texts([text])[0].tolist()
+        return self._search_by_embedding(emb)
+
+    def _search_by_embedding(self, emb): 
         parameters = {'query_embedding': emb}
         res = self.client.query('''
-            SELECT object_id, img_name, L2Distance(image_embedding, {query_embedding:Array(Float32)}) as dist 
+            SELECT object_id, group, img_name, L2Distance(image_embedding, {query_embedding:Array(Float32)}) as dist 
             FROM museum_imgs 
             ORDER BY dist ASC
             LIMIT 10
         ''', parameters=parameters)
-        return [(str(row[0]), os.path.join(str(row[0]), row[1])) for row in res.result_rows]
+        return [(str(row[0]), row[1], os.path.join(str(row[0]), row[2]), row[3]) for row in res.result_rows]
 
 
 if __name__ == '__main__': 
-    df = ai_model.df
+    df = dataset.df
     if len(sys.argv) > 1: 
         df = df[:int(sys.argv[1])]
     db = DB(ai_model.large_clip)
