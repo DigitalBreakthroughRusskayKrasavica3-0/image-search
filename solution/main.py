@@ -24,7 +24,7 @@ def _convert_to_ui(fetched_images):
     if fetched_images[0][3] < IMAGES_DUPLICATES_THRESHOLD: 
         gr.Warning('Загруженное изображение очень похоже на изображение экспоната, уже введённого в базу данных. Возможно, это дубликат!')
     images = [os.path.join(dataset.DATASET_PATH, 'train', img_path) for _, _, img_path, _ in fetched_images]
-    return fetched_images[0][0], images[0], images[1:], fetched_images[0][1], 'adsf', 'asdf', 'asdf', 'asdf'
+    return fetched_images[0][0], images[0], images[1:], fetched_images[0][1] # 'adsf', 'asdf', 'asdf', 'asdf'
 
 def desc_get_images_and_categories(description: str):
     print(description)
@@ -128,18 +128,18 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         best_category = gr.Text(
             interactive=False,
-            info='Лучшее совпадение по категории (в скобках указаны проценты уверенности)',
+            info='Лучшее совпадение по категории',
             elem_classes='big_font',
             show_label=False,
             scale=3,
             visible=False
         )
-        categories = [gr.Text(
-            info='Похожая категория',
-            elem_classes='big_font',
-            show_label=False,
-            visible=False
-        ) for _ in range(4)]
+        # categories = [gr.Text(
+        #     info='Похожая категория',
+        #     elem_classes='big_font',
+        #     show_label=False,
+        #     visible=False
+        # ) for _ in range(4)]
 
     # images gallery chapter
     images = gr.Gallery(
@@ -154,7 +154,7 @@ with gr.Blocks(css=css) as demo:
     input_image.upload(
         fn=img_get_images_and_categories,
         inputs=input_image,
-        outputs=[image_id, best_image, images, best_category, *categories]
+        outputs=[image_id, best_image, images, best_category]#, *categories]
     )
     input_image.upload(
         fn=img_get_description,
@@ -166,7 +166,7 @@ with gr.Blocks(css=css) as demo:
     send_description_btn.click(
         fn=desc_get_images_and_categories,
         inputs=input_description,
-        outputs=[image_id, best_image, images, best_category, *categories]
+        outputs=[image_id, best_image, images, best_category]#, *categories]
     )
     send_description_btn.click(
         fn=desc_get_description,
@@ -181,7 +181,7 @@ with gr.Blocks(css=css) as demo:
     )
     img_tab.select(
         fn=set_outputs_invisible,
-        outputs=[best_category, description, json_btn, *categories, images, best_image]
+        outputs=[best_category, description, json_btn, images, best_image]
     )
     desc_tab.select(
         fn=lambda: None,
@@ -189,21 +189,21 @@ with gr.Blocks(css=css) as demo:
     )
     desc_tab.select(
         fn=set_outputs_invisible,
-        outputs=[best_category, description, json_btn, *categories, images, best_image]
+        outputs=[best_category, description, json_btn, images, best_image]
     )
 
     # change output visible
     input_image.upload(
         fn=set_outputs_visible,
-        outputs=[best_category, description, json_btn, *categories, images]
+        outputs=[best_category, description, json_btn, images]
     )
     input_image.clear(
         fn=set_outputs_invisible,
-        outputs=[best_category, description, json_btn, *categories, images, best_image]
+        outputs=[best_category, description, json_btn, images, best_image]
     )
     send_description_btn.click(
         fn=set_outputs_visible,
-        outputs=[best_category, description, json_btn, *categories, images]
+        outputs=[best_category, description, json_btn, images]
     )
 
     # JSON button event (download JSON)
